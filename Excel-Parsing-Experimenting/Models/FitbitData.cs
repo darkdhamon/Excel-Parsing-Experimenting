@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
+// ReSharper disable UnusedMember.Global
 
 namespace Excel_Parsing_Experimenting.Models
 {
@@ -26,14 +25,14 @@ namespace Excel_Parsing_Experimenting.Models
 
         public List<SleepDataEntry> SleepDataEntries
         {
-            get { return _sleepDataEntries??(_sleepDataEntries = new List<SleepDataEntry>()); }
-            set { _sleepDataEntries = value; }
+            get => _sleepDataEntries??(_sleepDataEntries = new List<SleepDataEntry>());
+            set => _sleepDataEntries = value;
         }
 
         public List<ActivityDataEntry> ActivityDataEntries
         {
-            get { return _activityDataEntries??(_activityDataEntries = new List<ActivityDataEntry>()); }
-            set { _activityDataEntries = value; }
+            get => _activityDataEntries??(_activityDataEntries = new List<ActivityDataEntry>());
+            set => _activityDataEntries = value;
         }
 
         [NotMapped]

@@ -1,7 +1,12 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
-
+<div class="row">
+    <h2>Introduction</h2>
+    <p>Hello User.</p>
+    <p>This application was developed to experiment with parsing data from an Microsoft Excel Document. This Document specifically reads data that has been exported from A FitBit Profile. if you do not have or do not know how to download a Fitbit Excel Export you can use <a href="~/Content/fitbit_export_20180109.xls">mine</a>.</p>
+    <p>Upload a file exported from fitbit and click upload and on the next page the data will be displayed on a on three tables. One for Body, Activity, and Sleep. your information will not be saved.</p>
+</div>
 <div class="row">
     @using (Html.BeginForm("ImportFitbitData","Upload",FormMethod.Post,new{enctype= "multipart/form-data" }))
     {

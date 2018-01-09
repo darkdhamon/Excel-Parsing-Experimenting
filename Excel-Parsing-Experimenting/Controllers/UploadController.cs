@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using ExcelDataReader;
@@ -13,12 +11,6 @@ namespace Excel_Parsing_Experimenting.Controllers
 {
     public class UploadController : Controller
     {
-        //// GET: Upload
-        //public ActionResult Index()
-        //{
-        //    return View();
-        //}
-
         public ActionResult ImportFitbitData(HttpPostedFileBase file)
         {
             var viewModel = new FitbitData();
@@ -28,7 +20,6 @@ namespace Excel_Parsing_Experimenting.Controllers
                 var workbook  = reader.AsDataSet();
                 foreach (DataTable worksheet in workbook.Tables)
                 {
-                    var sheetreader = worksheet.CreateDataReader();
                     switch (worksheet.TableName)
                     {
                         case "Body":
