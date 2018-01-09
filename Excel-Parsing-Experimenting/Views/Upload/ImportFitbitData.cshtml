@@ -1,0 +1,155 @@
+﻿@using Excel_Parsing_Experimenting.Models
+@model FitbitData
+
+@{
+    ViewBag.Title = "title";
+}
+
+@foreach (var error in Model.ErrorMessages)
+{
+    <text>Error: @error </text><br/>
+}
+
+<h2>Body Data</h2>
+
+<table style="width: 100%">
+    <thead>
+    <tr>
+        <th>
+            Date
+        </th>
+        <th>Weight</th>
+        <th>BMI</th>
+        <th>Fat</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var entry in Model.BodyDataEntries)
+    {
+        <tr>
+            <td>
+                @entry.Date.ToShortDateString()
+            </td>
+            <td>
+                @entry.Weight
+            </td>
+            <td>
+                @entry.BMI
+            </td>
+            <td>
+                @entry.Fat%
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<h2>Activity Data</h2>
+<table style="width: 100%">
+    <thead>
+        <tr>
+            <th>
+                Date
+            </th>
+            <th>Calories Burned</th>
+            <th>Steps</th>
+            <th>Distance</th>
+            <th>floors</th>
+            <th>Minutes Sedentary</th>
+            <th>Minutes Lightly Active</th>
+            <th>Minutes Fairly Active</th>
+            <th>Minutes Very Active</th>
+            <th>Calories Spent in Excercies</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var entry in Model.ActivityDataEntries)
+        {
+            <tr>
+                <td>
+                    @entry.Date.ToShortDateString()
+                </td>
+                <td>
+                    @entry.CaloriesBurned
+                </td>
+                <td>
+                    @entry.Steps
+                </td>
+                <td>
+                    @entry.Distance
+                </td>
+                <td>
+                    @entry.Floors
+                </td>
+                <td>
+                    @entry.MinutesSedentary
+                </td>
+                <td>
+                    @entry.MinutesLightlyActive
+                </td>
+                <td>
+                    @entry.MinutesFairlyActive
+                </td>
+                <td>
+                    @entry.MinutesVeryActive
+                </td>
+                <td>
+                    @entry.ActivityCalories
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2>Sleep Data</h2>
+<table style="width: 100%">
+    <thead>
+    <tr>
+        <th>
+            Start Time
+        </th>
+        <th>End Time</th>
+        <th>Minutes Asleep</th>
+        <th>Minutes Awake</th>
+        <th>Number of Awakenings</th>
+        <th>Time in Bed</th>
+        <th>Minutes of REM Sleep</th>
+        <th>Minutes of Light Sleep</th>
+        <th>Minutes of Deep Sleep</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var entry in Model.SleepDataEntries)
+    {
+        <tr>
+            <td>
+                @entry.StartTime.ToShortDateString()
+            </td>
+            <td>
+                @entry.EndTime.ToShortDateString()
+            </td>
+            <td>
+                @entry.MinutesAsleep
+            </td>
+            <td>
+                @entry.MinutesAwake
+            </td>
+            <td>
+                @entry.NumberOfAwaakenings
+            </td>
+            <td>
+                @entry.TimeInBed
+            </td>
+            <td>
+                @entry.MinutesREMSleep
+            </td>
+            <td>
+                @entry.MinutesLightSleep
+            </td>
+            <td>
+                @entry.MinutesDeepSleep
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

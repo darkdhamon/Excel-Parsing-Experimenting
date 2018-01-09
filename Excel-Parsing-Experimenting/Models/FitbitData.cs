@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
@@ -7,14 +8,41 @@ namespace Excel_Parsing_Experimenting.Models
 {
     public class FitbitData
     {
+        [NotMapped]
+        private List<string> _errorMessages;
+
+        private List<BodyDataEntry> _bodyDataEntries;
+        private List<SleepDataEntry> _sleepDataEntries;
+        private List<ActivityDataEntry> _activityDataEntries;
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
-        public List<BodyDataEntry> BodyDataEntries { get; set; }
-        public List<SleepDataEntry> SleepDataEntries { get; set; }
-        public List<ActivityDataEntry> ActivityDataEntries { get; set; }
+
+        public List<BodyDataEntry> BodyDataEntries
+        {
+            get => _bodyDataEntries??(_bodyDataEntries= new List<BodyDataEntry>());
+            set => _bodyDataEntries = value;
+        }
+
+        public List<SleepDataEntry> SleepDataEntries
+        {
+            get { return _sleepDataEntries??(_sleepDataEntries = new List<SleepDataEntry>()); }
+            set { _sleepDataEntries = value; }
+        }
+
+        public List<ActivityDataEntry> ActivityDataEntries
+        {
+            get { return _activityDataEntries??(_activityDataEntries = new List<ActivityDataEntry>()); }
+            set { _activityDataEntries = value; }
+        }
+
+        [NotMapped]
+        public List<string> ErrorMessages => _errorMessages??(_errorMessages = new List<string>());
     }
 
     public class BodyDataEntry
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
         public DateTime Date { get; set; }
         public double Weight { get; set; }
@@ -24,6 +52,7 @@ namespace Excel_Parsing_Experimenting.Models
 
     public class ActivityDataEntry
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
         public DateTime Date { get; set; }
         public int CaloriesBurned { get; set; }
@@ -39,6 +68,7 @@ namespace Excel_Parsing_Experimenting.Models
 
     public class SleepDataEntry
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; } 
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
