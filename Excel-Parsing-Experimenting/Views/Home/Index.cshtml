@@ -1,16 +1,99 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
+<style>
+    .col-md-4 {
+        border: grey solid 1px;
+        border-radius: 10px;
+    }
+</style>
 <div class="row">
     <h2>Introduction</h2>
     <p>Hello User.</p>
-    <p>This application was developed to experiment with parsing data from an Microsoft Excel Document. This Document specifically reads data that has been exported from A FitBit Profile. if you do not have or do not know how to download a Fitbit Excel Export you can use <a href="~/Content/fitbit_export_20180109.xls">mine</a>.</p>
+    <p>This application was developed to experiment with parsing data from an Microsoft Excel Document. This Document specifically reads data that has been exported from A FitBit Profile. if you do not have or do not know how to download a Fitbit Excel Export you can use <a href="~/Content/fitbit_export_20180109.xlsx">mine</a>.</p>
     <p>Upload a file exported from fitbit and click upload and on the next page the data will be displayed on a on three tables. One for Body, Activity, and Sleep. your information will not be saved.</p>
 </div>
 <div class="row">
-    @using (Html.BeginForm("ImportFitbitData","Upload",FormMethod.Post,new{enctype= "multipart/form-data" }))
-    {
-        <input type="file" name="file" id="file" placeholder="File upload"/>
-        <button type="submit" >Upload</button>
-    }
+    <div class="col-md-4">
+        <h3>Upload using <a href="https://github.com/ExcelDataReader/ExcelDataReader/blob/develop/README.md">ExcelDataReader</a></h3>
+        <div style="margin-bottom: 10px">
+            @using (Html.BeginForm("ImportFitbitDataEDR", "Upload", FormMethod.Post, new {enctype = "multipart/form-data"}))
+            {
+                <input type="file" name="file" id="file" placeholder="File upload"/>
+                <button type="submit">Upload</button>
+            }
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Pros</h4>
+                    <ul>
+                        <li>Supports Both XLS and XLSX</li>
+                        <li>Simple to use</li>
+                        <li>Multiple worksheets per workbook</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>Cons</h4>
+                    <ul>
+                        <li>Cannot use advanced excel features multiple tables per worksheet</li>
+                        <li>Cannot create excel docs only read</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <h3>Upload using <a href="https://github.com/JanKallman/EPPlus">EPPlus</a></h3>
+        <div style="margin-bottom: 10px">
+            @using (Html.BeginForm("ImportFitbitDataEEP", "Upload", FormMethod.Post, new {enctype = "multipart/form-data"}))
+        {
+            <input type="file" name="file" id="file" placeholder="File upload"/>
+            <button type="submit">Upload</button>
+        }
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Pros</h4>
+                    <ul>
+                        <li>Simple to use</li>
+                        <li>Multiple worksheets per workbook</li>
+                        <li>Can use advanced excel features</li>
+                        <li>Can read and write excel documents</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4>Cons</h4>
+                    <ul>
+                        <li>Can only support XLSX format</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <h3>Upload using <a href="https://github.com/OfficeDev/Open-XML-SDK">Open-XML-SDK</a></h3>
+        <div style="margin-bottom: 10px">
+            @using (Html.BeginForm("ImportFitbitDataOpenXML", "Upload", FormMethod.Post, new {enctype = "multipart/form-data"}))
+            {
+                <input type="file" name="file" id="file" placeholder="File upload"/>
+                <button type="submit">Upload</button>
+            }
+                
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Pros</h4>
+                <ul>
+                    <li>Can read and write excel documents</li>
+                    <li>Multiple worksheets per workbook</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h4>Cons</h4>
+                <ul>
+                    <li>Can only support XLSX format</li>
+                    <li>Extremely convoluted...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
 </div>

@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Data;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Spreadsheet;
 using ExcelDataReader;
 using Excel_Parsing_Experimenting.Models;
-using static System.Double;
+using OfficeOpenXml;
 
 namespace Excel_Parsing_Experimenting.Controllers
 {
     public class UploadController : Controller
     {
-        public ActionResult ImportFitbitData(HttpPostedFileBase file)
+        public ActionResult ImportFitbitDataEDR(HttpPostedFileBase file)
         {
             var viewModel = new FitbitData();
             if (file != null && file.ContentLength > 0)
@@ -53,7 +57,7 @@ namespace Excel_Parsing_Experimenting.Controllers
                     
                 }
             }
-            return View(viewModel);
+            return View("ImportFitbitData",viewModel);
         }
 
         private SleepDataEntry ParseSleep(DataRow worksheetRow)
@@ -87,7 +91,7 @@ namespace Excel_Parsing_Experimenting.Controllers
                 entry.Date = DateTime.Parse(worksheetRow[0].ToString());
                 entry.CaloriesBurned = int.Parse(worksheetRow[1].ToString(),NumberStyles.AllowThousands);
                 entry.Steps = int.Parse(worksheetRow[2].ToString(), NumberStyles.AllowThousands);
-                entry.Distance = Parse(worksheetRow[3].ToString());
+                entry.Distance = double.Parse(worksheetRow[3].ToString());
                 entry.Floors = int.Parse(worksheetRow[4].ToString(), NumberStyles.AllowThousands);
                 entry.MinutesSedentary = int.Parse(worksheetRow[5].ToString(), NumberStyles.AllowThousands);
                 entry.MinutesLightlyActive = int.Parse(worksheetRow[6].ToString(), NumberStyles.AllowThousands);
@@ -109,9 +113,9 @@ namespace Excel_Parsing_Experimenting.Controllers
             try
             {
                 entry.Date = DateTime.Parse(worksheetRow[0].ToString());
-                entry.Weight = Parse(worksheetRow[1].ToString());
-                entry.BMI = Parse(worksheetRow[2].ToString());
-                entry.Fat = Parse(worksheetRow[3].ToString());
+                entry.Weight = double.Parse(worksheetRow[1].ToString());
+                entry.BMI = double.Parse(worksheetRow[2].ToString());
+                entry.Fat = double.Parse(worksheetRow[3].ToString());
             }
             catch
             {
@@ -119,6 +123,158 @@ namespace Excel_Parsing_Experimenting.Controllers
                 return null;
             }
             return entry;
+        }
+
+        public ActionResult ImportFitbitDataEep(HttpPostedFileBase file)
+        {
+            var viewModel = new FitbitData();
+            if (file != null && file.ContentLength > 0)
+            {
+                var guid = Guid.NewGuid();
+                var targetfolder = HttpContext.Server.MapPath($"~/uploads/excelDoc-{guid}");
+                if (!Directory.Exists(targetfolder))
+                    Directory.CreateDirectory(targetfolder);
+                var targetpath = Path.Combine(targetfolder, file.FileName);
+                file.SaveAs(targetpath);
+                var fileinfo = new FileInfo(targetpath);
+                using (var package = new ExcelPackage(file.InputStream))
+                {
+                    var workbook = package.Workbook;
+                    foreach (var worksheet in workbook.Worksheets)
+                    {
+
+                        switch (worksheet.Name)
+                        {
+                            case "Body":
+                                for (var i = 2; i <= worksheet.Dimension.End.Row; i++)
+                                {
+                                    var entry = new BodyDataEntry();
+                                    try
+                                    {
+                                        entry.Date = Convert.ToDateTime(worksheet.Cells[i, 1].Value.ToString());
+                                        entry.Weight = Convert.ToDouble(worksheet.Cells[i, 2].Value.ToString());
+                                        entry.BMI = Convert.ToDouble(worksheet.Cells[i, 3].Value.ToString());
+                                        entry.Fat = Convert.ToDouble(worksheet.Cells[i, 4].Value.ToString());
+                                    }
+                                    catch (Exception exception)
+                                    {
+                                        viewModel.ErrorMessages.Add(exception.Message);
+                                    }
+                                     viewModel.BodyDataEntries.Add(entry);
+                                }
+                                break;
+                            case "Activities":
+                                
+                                break;
+                            case "Sleep":
+                                
+                                break;
+                            default:
+                                viewModel.ErrorMessages.Add($"Unknown worksheet name: {worksheet.Name}");
+                                break;
+                        }
+                    }
+                }
+            }
+            return View("ImportFitbitData", viewModel);
+        }
+
+        public ActionResult ImportFitbitDataOpenXml(HttpPostedFileBase file)
+        {
+            var viewModel = new FitbitData();
+            if (file != null && file.ContentLength > 0)
+            {
+                //var guid = Guid.NewGuid();
+                //var targetfolder = HttpContext.Server.MapPath($"~/uploads/excelDoc-{guid}");
+                //if (!Directory.Exists(targetfolder))
+                //    Directory.CreateDirectory(targetfolder);
+                //var targetpath = Path.Combine(targetfolder, file.FileName);
+                //file.SaveAs(targetpath);
+                //var fileinfo = new FileInfo(targetpath);
+                try
+                {
+                    using (var document = SpreadsheetDocument.Open(file.InputStream, false))
+                    {
+                        var workbookPart = document.WorkbookPart;
+                        var workbook = workbookPart.Workbook;
+                        var worksheets = workbook.Descendants<Sheet>().ToList();
+                        foreach (var sheet in worksheets)
+                        {
+                            var worksheet = ((WorksheetPart) workbookPart.GetPartById(sheet.Id)).Worksheet;
+                            var sheetdata = (SheetData) worksheet.ChildElements.GetItem(4); // 4 is the sheet data...
+                            switch (sheet.Name.ToString())
+                            {
+                                case "Body":
+                                    var rowEmpty = false;
+                                    var rowindex = 0;
+                                    foreach (var openXmlElement in sheetdata.ChildElements)
+                                    {
+                                        var row = (Row) openXmlElement;
+                                        var entry = new BodyDataEntry();
+                                        try
+                                        {
+                                            foreach (var openXmlElement1 in row.ChildElements)
+                                            {
+                                                var cell = (Cell) openXmlElement1;
+                                                SharedStringItem celltext = null;
+                                                if (cell.DataType == CellValues.SharedString)
+                                                {
+                                                    celltext = workbookPart.SharedStringTablePart.SharedStringTable
+                                                        .Elements<SharedStringItem>()
+                                                        .ElementAt(int.Parse(cell.InnerText));
+                                                }
+                                                if (celltext != null)
+                                                {
+
+                                                    if (cell.CellReference.Value.Contains("A"))
+                                                    {
+                                                        entry.Date = Convert.ToDateTime(celltext.InnerText);
+                                                    }
+                                                    if (cell.CellReference.Value.Contains("B"))
+                                                    {
+                                                        entry.Weight = Convert.ToDouble(celltext.InnerText);
+                                                    }
+                                                    if (cell.CellReference.Value.Contains("C"))
+                                                    {
+                                                        entry.BMI = Convert.ToDouble(celltext.InnerText);
+                                                    }
+                                                    if (cell.CellReference.Value.Contains("D"))
+                                                    {
+                                                        entry.Fat = Convert.ToDouble(celltext.InnerText);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            entry = null;
+                                        }
+
+
+                                        if (entry != null)
+                                            viewModel.BodyDataEntries.Add(entry);
+                                    }
+
+                                    break;
+                                case "Activities":
+
+                                    break;
+                                case "Sleep":
+
+                                    break;
+                                default:
+                                    viewModel.ErrorMessages.Add($"Unknown worksheet name: {sheet.Name}");
+                                    break;
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    viewModel.ErrorMessages.Add(e.Message);
+                }
+            }
+            return View("ImportFitbitData",viewModel);
         }
     }
 }
