@@ -1,0 +1,37 @@
+name: Changelog Required
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  changelog-required:
+    name: changelog-required
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify CHANGELOG.md was updated
+        shell: bash
+        run: |
+          changed_files="$(git diff --name-only "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}")"
+          echo "Changed files:"
+          echo "$changed_files"
+
+          if ! grep -qx "CHANGELOG.md" <<< "$changed_files"; then
+            echo "CHANGELOG.md must be updated in every pull request targeting master."
+            exit 1
+          fi

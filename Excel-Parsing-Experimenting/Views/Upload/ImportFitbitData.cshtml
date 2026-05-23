@@ -1,155 +1,185 @@
-@using Excel_Parsing_Experimenting.Models
-@model FitbitData
-
+@model FitbitImportResultViewModel
 @{
-    ViewBag.Title = "title";
+    ViewData["Title"] = $"{Model.ParserName} results";
 }
 
-@foreach (var error in Model.ErrorMessages)
+<section class="results-hero">
+    <div>
+        <p class="eyebrow">Parsing results</p>
+        <h1>@Model.ParserName</h1>
+        <p class="section-text">@Model.ParserSummary</p>
+        <p class="result-meta">
+            Uploaded file: <strong>@Model.UploadedFileName</strong>
+            <span class="meta-separator">|</span>
+            Supported formats: <strong>@string.Join(", ", Model.SupportedExtensions)</strong>
+        </p>
+    </div>
+    <div class="result-actions">
+        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Try another parser</a>
+        <a class="btn btn-link" href="@Model.LibraryUrl" target="_blank" rel="noreferrer">Library documentation</a>
+    </div>
+</section>
+
+@if (Model.Data.ErrorMessages.Count > 0)
 {
-    <text>Error: @error </text><br/>
+    <section class="alert alert-warning results-alert" role="alert">
+        <h2>Messages</h2>
+        <ul class="mb-0">
+            @foreach (var error in Model.Data.ErrorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </section>
 }
 
-<h2>Body Data</h2>
+<section class="summary-grid">
+    <article class="metric-card">
+        <span class="metric-label">Body rows</span>
+        <strong>@Model.Data.BodyDataEntries.Count</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Activity rows</span>
+        <strong>@Model.Data.ActivityDataEntries.Count</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Sleep rows</span>
+        <strong>@Model.Data.SleepDataEntries.Count</strong>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Total parsed rows</span>
+        <strong>@Model.Data.TotalRowCount</strong>
+    </article>
+</section>
 
-<table style="width: 100%">
-    <thead>
-    <tr>
-        <th>
-            Date
-        </th>
-        <th>Weight</th>
-        <th>BMI</th>
-        <th>Fat</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var entry in Model.BodyDataEntries)
-    {
-        <tr>
-            <td>
-                @entry.Date.ToShortDateString()
-            </td>
-            <td>
-                @entry.Weight
-            </td>
-            <td>
-                @entry.BMI
-            </td>
-            <td>
-                @entry.Fat%
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
-
-<h2>Activity Data</h2>
-<table style="width: 100%">
-    <thead>
-        <tr>
-            <th>
-                Date
-            </th>
-            <th>Calories Burned</th>
-            <th>Steps</th>
-            <th>Distance</th>
-            <th>floors</th>
-            <th>Minutes Sedentary</th>
-            <th>Minutes Lightly Active</th>
-            <th>Minutes Fairly Active</th>
-            <th>Minutes Very Active</th>
-            <th>Calories Spent in Excercies</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var entry in Model.ActivityDataEntries)
+<section class="results-section">
+    <div class="table-panel">
+        <div class="table-panel__header">
+            <h2>Body data</h2>
+        </div>
+        @if (Model.Data.BodyDataEntries.Count == 0)
         {
-            <tr>
-                <td>
-                    @entry.Date.ToShortDateString()
-                </td>
-                <td>
-                    @entry.CaloriesBurned
-                </td>
-                <td>
-                    @entry.Steps
-                </td>
-                <td>
-                    @entry.Distance
-                </td>
-                <td>
-                    @entry.Floors
-                </td>
-                <td>
-                    @entry.MinutesSedentary
-                </td>
-                <td>
-                    @entry.MinutesLightlyActive
-                </td>
-                <td>
-                    @entry.MinutesFairlyActive
-                </td>
-                <td>
-                    @entry.MinutesVeryActive
-                </td>
-                <td>
-                    @entry.ActivityCalories
-                </td>
-            </tr>
+            <p class="empty-state">No body rows were parsed.</p>
         }
-    </tbody>
-</table>
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Weight</th>
+                        <th>BMI</th>
+                        <th>Fat</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var entry in Model.Data.BodyDataEntries)
+                    {
+                        <tr>
+                            <td>@entry.Date.ToShortDateString()</td>
+                            <td>@entry.Weight</td>
+                            <td>@entry.Bmi</td>
+                            <td>@($"{entry.Fat}%")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
 
-<h2>Sleep Data</h2>
-<table style="width: 100%">
-    <thead>
-    <tr>
-        <th>
-            Start Time
-        </th>
-        <th>End Time</th>
-        <th>Minutes Asleep</th>
-        <th>Minutes Awake</th>
-        <th>Number of Awakenings</th>
-        <th>Time in Bed</th>
-        <th>Minutes of REM Sleep</th>
-        <th>Minutes of Light Sleep</th>
-        <th>Minutes of Deep Sleep</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var entry in Model.SleepDataEntries)
-    {
-        <tr>
-            <td>
-                @entry.StartTime.ToShortDateString()
-            </td>
-            <td>
-                @entry.EndTime.ToShortDateString()
-            </td>
-            <td>
-                @entry.MinutesAsleep
-            </td>
-            <td>
-                @entry.MinutesAwake
-            </td>
-            <td>
-                @entry.NumberOfAwaakenings
-            </td>
-            <td>
-                @entry.TimeInBed
-            </td>
-            <td>
-                @entry.MinutesREMSleep
-            </td>
-            <td>
-                @entry.MinutesLightSleep
-            </td>
-            <td>
-                @entry.MinutesDeepSleep
-            </td>
-        </tr>
-    }
-    </tbody>
-</table>
+    <div class="table-panel">
+        <div class="table-panel__header">
+            <h2>Activity data</h2>
+        </div>
+        @if (Model.Data.ActivityDataEntries.Count == 0)
+        {
+            <p class="empty-state">No activity rows were parsed.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Calories burned</th>
+                        <th>Steps</th>
+                        <th>Distance</th>
+                        <th>Floors</th>
+                        <th>Minutes sedentary</th>
+                        <th>Minutes lightly active</th>
+                        <th>Minutes fairly active</th>
+                        <th>Minutes very active</th>
+                        <th>Activity calories</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var entry in Model.Data.ActivityDataEntries)
+                    {
+                        <tr>
+                            <td>@entry.Date.ToShortDateString()</td>
+                            <td>@entry.CaloriesBurned</td>
+                            <td>@entry.Steps</td>
+                            <td>@entry.Distance</td>
+                            <td>@entry.Floors</td>
+                            <td>@entry.MinutesSedentary</td>
+                            <td>@entry.MinutesLightlyActive</td>
+                            <td>@entry.MinutesFairlyActive</td>
+                            <td>@entry.MinutesVeryActive</td>
+                            <td>@entry.ActivityCalories</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="table-panel">
+        <div class="table-panel__header">
+            <h2>Sleep data</h2>
+        </div>
+        @if (Model.Data.SleepDataEntries.Count == 0)
+        {
+            <p class="empty-state">No sleep rows were parsed.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                    <tr>
+                        <th>Start time</th>
+                        <th>End time</th>
+                        <th>Minutes asleep</th>
+                        <th>Minutes awake</th>
+                        <th>Number of awakenings</th>
+                        <th>Time in bed</th>
+                        <th>Minutes REM sleep</th>
+                        <th>Minutes light sleep</th>
+                        <th>Minutes deep sleep</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var entry in Model.Data.SleepDataEntries)
+                    {
+                        <tr>
+                            <td>@entry.StartTime</td>
+                            <td>@entry.EndTime</td>
+                            <td>@entry.MinutesAsleep</td>
+                            <td>@entry.MinutesAwake</td>
+                            <td>@entry.NumberOfAwakenings</td>
+                            <td>@entry.TimeInBed</td>
+                            <td>@(entry.MinutesRemSleep?.ToString() ?? "N/A")</td>
+                            <td>@(entry.MinutesLightSleep?.ToString() ?? "N/A")</td>
+                            <td>@(entry.MinutesDeepSleep?.ToString() ?? "N/A")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

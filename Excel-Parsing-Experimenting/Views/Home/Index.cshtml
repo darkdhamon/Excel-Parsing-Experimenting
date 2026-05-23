@@ -1,99 +1,114 @@
-﻿@{
-    ViewBag.Title = "Home Page";
+@model HomePageViewModel
+@{
+    ViewData["Title"] = ".NET 10 Fitbit Workbook Parser Lab";
 }
-<style>
-    .col-md-4 {
-        border: grey solid 1px;
-        border-radius: 10px;
-    }
-</style>
-<div class="row">
-    <h2>Introduction</h2>
-    <p>Hello User.</p>
-    <p>This application was developed to experiment with parsing data from an Microsoft Excel Document. This Document specifically reads data that has been exported from A FitBit Profile. if you do not have or do not know how to download a Fitbit Excel Export you can use <a href="~/Content/fitbit_export_20180109.xlsx">mine</a>.</p>
-    <p>Upload a file exported from fitbit and click upload and on the next page the data will be displayed on a on three tables. One for Body, Activity, and Sleep. your information will not be saved.</p>
-</div>
-<div class="row">
-    <div class="col-md-4">
-        <h3>Upload using <a href="https://github.com/ExcelDataReader/ExcelDataReader/blob/develop/README.md">ExcelDataReader</a></h3>
-        <div style="margin-bottom: 10px">
-            @using (Html.BeginForm("ImportFitbitDataEDR", "Upload", FormMethod.Post, new {enctype = "multipart/form-data"}))
-            {
-                <input type="file" name="file" id="file" placeholder="File upload"/>
-                <button type="submit">Upload</button>
-            }
-            <div class="row">
-                <div class="col-md-6">
-                    <h4>Pros</h4>
-                    <ul>
-                        <li>Supports Both XLS and XLSX</li>
-                        <li>Simple to use</li>
-                        <li>Multiple worksheets per workbook</li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h4>Cons</h4>
-                    <ul>
-                        <li>Cannot use advanced excel features multiple tables per worksheet</li>
-                        <li>Cannot create excel docs only read</li>
-                    </ul>
-                </div>
-            </div>
+
+<section class="hero-panel">
+    <div class="hero-copy">
+        <p class="eyebrow">ASP.NET Core MVC on .NET 10</p>
+        <h1>Compare three Excel parsers against the same Fitbit export.</h1>
+        <p class="hero-text">
+            This rebuild keeps the original experiment idea, but modernizes the repository into an ASP.NET Core MVC app
+            with fully implemented ExcelDataReader, EPPlus, and Open XML SDK parsing paths.
+        </p>
+        <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="#parser-lab">Jump to uploads</a>
+            <a class="btn btn-outline-secondary btn-lg" href="#sample-files">Grab sample files</a>
         </div>
     </div>
-    <div class="col-md-4">
-        <h3>Upload using <a href="https://github.com/JanKallman/EPPlus">EPPlus</a></h3>
-        <div style="margin-bottom: 10px">
-            @using (Html.BeginForm("ImportFitbitDataEEP", "Upload", FormMethod.Post, new {enctype = "multipart/form-data"}))
+    <div class="hero-metrics">
+        <article class="metric-card">
+            <span class="metric-label">Target framework</span>
+            <strong>net10.0</strong>
+        </article>
+        <article class="metric-card">
+            <span class="metric-label">App model</span>
+            <strong>ASP.NET Core MVC</strong>
+        </article>
+        <article class="metric-card">
+            <span class="metric-label">Parser routes</span>
+            <strong>3 active comparisons</strong>
+        </article>
+    </div>
+</section>
+
+<section class="sample-panel" id="sample-files">
+    <div>
+        <p class="eyebrow">Sample workbook exports</p>
+        <h2>Use the included Fitbit files for quick validation.</h2>
+        <p class="section-text">
+            The repository still includes both the legacy <code>.xls</code> export and the modern <code>.xlsx</code> export.
+            ExcelDataReader accepts both; EPPlus and Open XML SDK target <code>.xlsx</code>.
+        </p>
+    </div>
+    <div class="sample-actions">
+        <a class="sample-link" asp-controller="Home" asp-action="DownloadSample" asp-route-fileName="fitbit_export_20180109.xls">
+            Download sample <code>.xls</code>
+        </a>
+        <a class="sample-link" asp-controller="Home" asp-action="DownloadSample" asp-route-fileName="fitbit_export_20180109.xlsx">
+            Download sample <code>.xlsx</code>
+        </a>
+    </div>
+</section>
+
+<section id="parser-lab">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Parser lab</p>
+            <h2>Upload one workbook through three different libraries.</h2>
+        </div>
+        <p class="section-text">
+            Each option maps the workbook into the same Fitbit result model so you can compare implementation style
+            without losing parity in the rendered output.
+        </p>
+    </div>
+
+    <div class="parser-grid">
+        @foreach (var parser in Model.ParserCards)
         {
-            <input type="file" name="file" id="file" placeholder="File upload"/>
-            <button type="submit">Upload</button>
+            <article class="parser-card">
+                <div class="parser-card__header">
+                    <div>
+                        <h3>@parser.DisplayName</h3>
+                        <p>@parser.Summary</p>
+                    </div>
+                    <a href="@parser.LibraryUrl" target="_blank" rel="noreferrer">Library</a>
+                </div>
+
+                <div class="support-badges">
+                    @foreach (var extension in parser.SupportedExtensions)
+                    {
+                        <span class="badge text-bg-light">@extension</span>
+                    }
+                </div>
+
+                <form asp-controller="Upload" asp-action="@parser.UploadAction" method="post" enctype="multipart/form-data" class="upload-form">
+                    <label class="form-label" for="@parser.InputId">Choose Fitbit workbook</label>
+                    <input class="form-control" id="@parser.InputId" type="file" name="file" accept="@string.Join(',', parser.SupportedExtensions)" />
+                    <button class="btn btn-dark" type="submit">Upload with @parser.DisplayName</button>
+                </form>
+
+                <div class="parser-columns">
+                    <div>
+                        <h4>Pros</h4>
+                        <ul>
+                            @foreach (var pro in parser.Pros)
+                            {
+                                <li>@pro</li>
+                            }
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Tradeoffs</h4>
+                        <ul>
+                            @foreach (var con in parser.Cons)
+                            {
+                                <li>@con</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </article>
         }
-            <div class="row">
-                <div class="col-md-6">
-                    <h4>Pros</h4>
-                    <ul>
-                        <li>Simple to use</li>
-                        <li>Multiple worksheets per workbook</li>
-                        <li>Can use advanced excel features</li>
-                        <li>Can read and write excel documents</li>
-                    </ul>
-                </div>
-                <div class="col-md-6">
-                    <h4>Cons</h4>
-                    <ul>
-                        <li>Can only support XLSX format</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
-    <div class="col-md-4">
-        <h3>Upload using <a href="https://github.com/OfficeDev/Open-XML-SDK">Open-XML-SDK</a></h3>
-        <div style="margin-bottom: 10px">
-            @using (Html.BeginForm("ImportFitbitDataOpenXML", "Upload", FormMethod.Post, new {enctype = "multipart/form-data"}))
-            {
-                <input type="file" name="file" id="file" placeholder="File upload"/>
-                <button type="submit">Upload</button>
-            }
-                
-        </div>
-        <div class="row">
-            <div class="col-md-6">
-                <h4>Pros</h4>
-                <ul>
-                    <li>Can read and write excel documents</li>
-                    <li>Multiple worksheets per workbook</li>
-                </ul>
-            </div>
-            <div class="col-md-6">
-                <h4>Cons</h4>
-                <ul>
-                    <li>Can only support XLSX format</li>
-                    <li>Extremely convoluted...</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-    
-</div>
+</section>

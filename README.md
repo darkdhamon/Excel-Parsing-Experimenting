@@ -1,137 +1,94 @@
 # Excel Parsing Experimenting
 
-`Excel Parsing Experimenting` is a small ASP.NET MVC 5 application used to compare different ways of reading Excel workbooks that were exported from Fitbit. The app accepts a workbook upload, parses data into a shared view model, and renders the results as HTML tables for quick inspection.
+`Excel Parsing Experimenting` is now an ASP.NET Core MVC application targeting `.NET 10`.
+The repository keeps the original goal of comparing Excel parsing approaches against Fitbit exports, but the implementation has been rebuilt on a modern web stack with fully working parser paths for:
 
-## Project Summary
+- `ExcelDataReader`
+- `EPPlus`
+- `Open XML SDK`
 
-- Framework: ASP.NET MVC 5 on .NET Framework 4.6.1
-- App type: classic ASP.NET web application
-- Primary goal: experiment with Excel parsing libraries against Fitbit export files
-- Persistence: none; uploaded data is parsed in-memory and displayed back to the user
-- Sample files included: `.xls` and `.xlsx` Fitbit exports
+## What Changed
 
-## What The App Does
+- Migrated from ASP.NET MVC 5 on .NET Framework 4.6.1 to ASP.NET Core MVC on `.NET 10`
+- Replaced the legacy project system with SDK-style projects
+- Added a test project with sample-driven parser regression coverage
+- Rebuilt the UI while preserving the upload-and-compare workflow
+- Completed full worksheet support for `Body`, `Activities`, and `Sleep` across all three parser implementations
 
-The home page presents three separate upload forms. Each form sends the same workbook through a different parser implementation:
+## Current Behavior
 
-1. `ExcelDataReader`
-2. `EPPlus`
-3. `Open XML SDK`
-
-The parsed results are mapped into a shared `FitbitData` model and displayed in three sections:
+The home page presents three upload cards, one for each parser library.
+Each upload route maps workbook content into the same shared Fitbit model and renders:
 
 - Body data
 - Activity data
 - Sleep data
 
-## Current Implementation Status
+The included sample files currently produce equivalent results across the supported parser routes:
 
-The codebase is intentionally experimental, and the three approaches are not equally complete.
+- `31` body rows
+- `31` activity rows
+- `26` sleep rows
 
-### 1. ExcelDataReader
+## Parser Notes
 
-Controller action: `UploadController.ImportFitbitDataEDR`
+### ExcelDataReader
 
 - Supports `.xls` and `.xlsx`
-- Parses `Body`, `Activities`, and `Sleep` worksheets
-- Skips rows that fail parsing, which is how header rows are ignored
-- This is the most complete implementation in the repository
+- Used as the broadest compatibility baseline
 
-### 2. EPPlus
-
-Controller action: `UploadController.ImportFitbitDataEep`
+### EPPlus
 
 - Supports `.xlsx`
-- Currently parses only the `Body` worksheet
-- `Activities` and `Sleep` handling are stubbed but not implemented
-- Adds parsing exceptions to the view model error list
+- Fully implemented for body, activity, and sleep sheets
+- Configured for noncommercial use in this sample app
 
-### 3. Open XML SDK
-
-Controller action: `UploadController.ImportFitbitDataOpenXml`
+### Open XML SDK
 
 - Supports `.xlsx`
-- Currently attempts to parse only the `Body` worksheet
-- Works at a much lower level than the other approaches
-- The implementation is more brittle and incomplete than the `ExcelDataReader` path
+- Fully implemented for body, activity, and sleep sheets
+- Handles shared strings and date-formatted cells directly
 
 ## Repository Layout
 
-- [Excel-Parsing-Experimenting.sln](./Excel-Parsing-Experimenting.sln)
-- [Excel-Parsing-Experimenting/Controllers/UploadController.cs](./Excel-Parsing-Experimenting/Controllers/UploadController.cs)
-- [Excel-Parsing-Experimenting/Models/FitbitData.cs](./Excel-Parsing-Experimenting/Models/FitbitData.cs)
-- [Excel-Parsing-Experimenting/Views/Home/Index.cshtml](./Excel-Parsing-Experimenting/Views/Home/Index.cshtml)
-- [Excel-Parsing-Experimenting/Views/Upload/ImportFitbitData.cshtml](./Excel-Parsing-Experimenting/Views/Upload/ImportFitbitData.cshtml)
-- [Sample Upload/fitbit_export_20180109.xls](./Sample%20Upload/fitbit_export_20180109.xls)
-- [Excel-Parsing-Experimenting/Content/fitbit_export_20180109.xlsx](./Excel-Parsing-Experimenting/Content/fitbit_export_20180109.xlsx)
+- [Excel-Parsing-Experimenting.sln](/C:/GitHub/Excel-Parsing-Experimenting/Excel-Parsing-Experimenting.sln)
+- [Excel-Parsing-Experimenting/Program.cs](/C:/GitHub/Excel-Parsing-Experimenting/Excel-Parsing-Experimenting/Program.cs)
+- [Excel-Parsing-Experimenting/Controllers/UploadController.cs](/C:/GitHub/Excel-Parsing-Experimenting/Excel-Parsing-Experimenting/Controllers/UploadController.cs)
+- [Excel-Parsing-Experimenting/Services/FitbitParsing](/C:/GitHub/Excel-Parsing-Experimenting/Excel-Parsing-Experimenting/Services/FitbitParsing)
+- [Excel-Parsing-Experimenting/ViewModels](/C:/GitHub/Excel-Parsing-Experimenting/Excel-Parsing-Experimenting/ViewModels)
+- [Excel-Parsing-Experimenting.Tests/ParserIntegrationTests.cs](/C:/GitHub/Excel-Parsing-Experimenting/Excel-Parsing-Experimenting.Tests/ParserIntegrationTests.cs)
+- [Sample Upload/fitbit_export_20180109.xls](/C:/GitHub/Excel-Parsing-Experimenting/Sample%20Upload/fitbit_export_20180109.xls)
+- [Sample Upload/fitbit_export_20180109.xlsx](/C:/GitHub/Excel-Parsing-Experimenting/Sample%20Upload/fitbit_export_20180109.xlsx)
 
-## Dependencies
+## Requirements
 
-Key NuGet packages used by the project:
+- `.NET SDK 10.0.300` or newer compatible `.NET 10` SDK
+- Windows if you want to follow the original repo conventions and sample workflow
+- Visual Studio 2026 Insider Preview if you want to open the solution in Visual Studio
 
-- `ExcelDataReader` `3.3.0`
-- `ExcelDataReader.DataSet` `3.3.0`
-- `EPPlus` `4.1.1`
-- `Open-XML-SDK` `2.7.2`
-- `Microsoft.AspNet.Mvc` `5.2.3`
+## Running Locally
 
-The project uses `packages.config`, so NuGet restore is required before the first build if the `packages` directory is not already present.
-
-## Running The Project
-
-### Prerequisites
-
-- Windows
-- A Visual Studio installation that supports ASP.NET MVC 5 web applications targeting .NET Framework 4.6.1
-- .NET Framework 4.6.1 Developer Pack / Targeting Pack
-- ASP.NET web development support / IIS Express
-
-### Open In Visual Studio
-
-Open the solution in your compatible Visual Studio installation:
+From the repository root:
 
 ```powershell
-devenv.exe .\Excel-Parsing-Experimenting.sln
+dotnet restore
+dotnet run --project .\Excel-Parsing-Experimenting\Excel-Parsing-Experimenting.csproj
 ```
 
-### Restore And Build From The Command Line
+Then open the local URL shown by Kestrel and upload one of the sample Fitbit exports.
 
-If you prefer the command line, run these from a Developer PowerShell / Developer Command Prompt for Visual Studio:
+## Running Tests
 
 ```powershell
-MSBuild.exe .\Excel-Parsing-Experimenting.sln -t:Restore -p:RestorePackagesConfig=true
-MSBuild.exe .\Excel-Parsing-Experimenting.sln /p:Configuration=Debug
+dotnet test .\Excel-Parsing-Experimenting.sln
 ```
 
-### Run Locally
+## EPPlus Licensing
 
-1. Restore NuGet packages.
-2. Build the solution.
-3. Start the web project from Visual Studio using IIS Express.
-4. Open the home page and upload a Fitbit export workbook.
-5. Compare the output produced by each parser path.
+This repository configures EPPlus for noncommercial use:
 
-## Sample Data
+```csharp
+ExcelPackage.License.SetNonCommercialPersonal("Excel Parsing Experimenting");
+```
 
-The repo includes Fitbit export samples that are useful for quick manual testing:
-
-- [Sample Upload/fitbit_export_20180109.xls](./Sample%20Upload/fitbit_export_20180109.xls)
-- [Excel-Parsing-Experimenting/Content/fitbit_export_20180109.xlsx](./Excel-Parsing-Experimenting/Content/fitbit_export_20180109.xlsx)
-
-## Known Limitations
-
-- The three parser implementations are not functionally equivalent.
-- `EPPlus` and `Open XML SDK` do not currently parse activity and sleep worksheets.
-- Error handling is lightweight and mostly oriented around skipping headers or recording exception messages.
-- The UI is a basic experiment page rather than a polished end-user workflow.
-- The application does not store uploads or parsed records.
-
-## Recommended Next Steps
-
-If you want to keep evolving this project, the highest-value improvements would be:
-
-1. Make all three parser implementations cover the same worksheet set.
-2. Extract parsing logic into separate services so library behavior can be compared more cleanly.
-3. Add automated tests against the included sample exports.
-4. Improve validation and user-facing error messages for malformed files.
-5. Add performance measurements if the goal is benchmarking as well as correctness.
+If you intend to use this application in a commercial context, replace that setup with the appropriate EPPlus commercial license configuration.
